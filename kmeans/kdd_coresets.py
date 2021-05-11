@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 traindata = pd.DataFrame(pd.read_csv("../kdd/bio_train.dat", '\t'))
 dataset = np.array(traindata)
-
+print(dataset.shape)
 """k-Means generalized
 
 """
