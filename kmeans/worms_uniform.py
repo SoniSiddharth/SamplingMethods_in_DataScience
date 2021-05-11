@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 """Real Dataset"""
 
-traindata = pd.DataFrame(pd.read_csv("./worms/worms_64d.txt", " "))
+traindata = pd.DataFrame(pd.read_csv("../worms/worms_64d.txt", " "))
 print(traindata.shape)
 # print(traindata)
 dataset = np.array(traindata)

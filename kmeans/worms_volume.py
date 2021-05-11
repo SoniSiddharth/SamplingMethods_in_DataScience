@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy.linalg as LA
 
-traindata = pd.DataFrame(pd.read_csv("worms/worms_64d.txt", " "))
+traindata = pd.DataFrame(pd.read_csv("../worms/worms_64d.txt", " "))
 # traindata = traindata.sample(n=1000, replace=False)
 dataset = np.array(traindata)
 print(dataset.shape)

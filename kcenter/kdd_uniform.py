@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 """Real Dataset"""
 
 # traindata = pd.DataFrame(pd.read_csv("../bio_train.dat", '\t'))
-dbfile = open("../kdd_reduced_20k.pickle", "rb" )
+dbfile = open("../kdd/kdd_reduced_20k.pickle", "rb" )
 dataset = pickle.load(dbfile)
 
 pca = PCA(n_components=5)
@@ -79,53 +79,9 @@ mod_centers = k_center(dataset, centers, wt)
 optimal_cost = kcenter_cost(mod_centers, dataset)
 print("optimal cost is --> ", optimal_cost)
 
-"""Light Weight Coresets"""
-
-def light_weight_coreset(dataset,m):
-    #calculate the mean of all data points
-    mu = [0]*(len(dataset[0]))
-    for p in dataset :
-      for k in range(len(p)):
-        mu[k] += p[k]
-    for k in range(len(p)):
-      mu[k] = mu[k]/len(dataset)
-
-    #first term in prob distribution
-    a = 1/(2*len(dataset))
-
-    #denominator in second term of prob distribution
-    sum_dsq = 0
-    mu = np.array(mu)
-    for p in dataset :
-      p = np.array(p)
-      sum_dsq += (LA.norm(mu-p))**2
-
-    #assign probability to each point
-    q = {}
-    w = []
-    for p in dataset :
-      p = np.array(p)
-      dsq = (LA.norm(mu-p))**2
-      q[tuple(p)] = a + (1/2)*(dsq/sum_dsq)
-      w.append(q[tuple(p)])
-    
-
-    #sample m points from this distribution       
-    a = [i for i in range(len(dataset))]
-    sample = np.random.choice(a,size = m, replace = False ,p=w )
-
-    coreset = {}
-    for indx in sample:
-      p = dataset[indx]
-      coreset[tuple(p)] = 1/(m*q[tuple(p)]) #point and weight
-
-    return coreset
-
 coreset_size = [14000, 12000, 10000, 8000, 6000, 4000, 2400]
-from sklearn.cluster import KMeans
 
 for ssize in coreset_size:
-  coreset = light_weight_coreset(dataset, ssize)
   """CLustering on Coreset and Comparison with optimal Kmeans solution"""
   data2 = []
   coreset_wts = []
@@ -137,7 +93,7 @@ for ssize in coreset_size:
   avg_cost = 0
   for j in range(3):
     mod_centers = k_center(data2, centers, wt)
-    cost2 = kcenter_cost(mod_centers, dataset)
+    cost2 = kcenter_cost(mod_centers, dataset, wt)
     avg_cost += cost2
   avg_cost = avg_cost/3
 

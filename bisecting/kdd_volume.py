@@ -1,26 +1,33 @@
 import numpy as np
 import pandas as pd
+from numpy import linalg as LA
 import matplotlib.pyplot as plt
-import numpy.linalg as LA
-import pickle
 import math
 from sklearn.cluster import KMeans
 
-dbfile = open("../kdd_reduced.pickle", "rb" )
-dataset = pickle.load(dbfile)
-print(dataset.shape)
+"""Real Dataset"""
+
+traindata = pd.DataFrame(pd.read_csv("../kdd/bio_train.dat", "\t"))
+print(traindata.shape)
+# print(traindata)
+dataset = np.array(traindata)
+
+"""k-Means generalized
+
+"""
 
 def nearest(pt,Q):
 	min_dist_sq = 10**18
 	closest_center = 0
-	for c in Q:
+	for c in Q :
 		c = np.array(c)
 		pt - np.array(pt)
 		dist_sq = (LA.norm(c-pt))**2
 		# print(dist_sq)
-		if dist_sq < min_dist_sq: 
+		if dist_sq < min_dist_sq : 
 			min_dist_sq = dist_sq
 			closest_center = c
+	# print(closest_center)
 	return closest_center, min_dist_sq
 
 def kmeans_cost(Q,dataset,wt):
@@ -29,11 +36,12 @@ def kmeans_cost(Q,dataset,wt):
 	dic = {}
 	for c in Q:
 		dic[tuple(c)] = []
-	for p in dataset:
+	for p in dataset :
 		c, dp = nearest(p,Q)
 		cost += dp
 		dic[tuple(c)].append(p)
-	return cost, dic
+
+	return cost,dic #dic stores key as center and value as list of points mapped to that canter
 
 def kmeans_centers(k,dataset,wt):
 	cluster_model = KMeans(n_clusters=k, init='k-means++', random_state=0).fit(dataset,sample_weight=wt)
@@ -96,20 +104,71 @@ def bisecting_k_means(dataset,k,itr,wt):
 	print("bisecting finish")
 	return Q
 
-def leverage_sampling(data, red_size):
-	print("svd started")
-	u, s, v = np.linalg.svd(data)
+def projection(A,S):
+	mat = []
+	for j in S:
+		mat.append(list(j))
+	u, s, v = np.linalg.svd(mat)
 	print("svd done")
-	u = u[:, :77]
-	norms = []
-	N = data.shape[0]
-	for j in range(N):
-		norms.append((tuple(data[j]), np.linalg.norm(u[j,:])**2))
-	norms_sorted = sorted(norms, key=lambda x: x[1], reverse=True)
-	reduced_set = []
-	for j in range(red_size):
-		reduced_set.append(list(norms_sorted[j][0]))
-	return reduced_set
+	u = u[:,:77]
+	component = (np.dot(u.T, np.dot(u, A.T))).T
+	ans = A - component
+	return ans
+
+def union_a_b(S,t):
+	for row in t:
+		x = tuple(row)
+		if x not in S:
+			S[x] = 0
+	return S
+
+def frob(A):
+	sum=0
+	for i in range(len(A)):
+		for j in range(len(A[i])):
+			sum+=pow(A[i][j],2)
+	return sum
+
+def frob_row(E):
+	#E=A[i]
+	sum=0
+	for i in range(len(E)):
+		sum+=pow(E[i],2)
+	return sum
+
+def sum_arr(arr):
+	s=0
+	for i in range(len(arr)):
+		s=s+arr[i]
+	return s
+
+def volume_samp(A,t,s):
+	E=A
+	m,n=np.shape(A)
+	S= {}
+
+	P=[]
+	P=[0 for i in range(m)]
+
+	for j in range(t):
+		den = (np.linalg.norm(E))**2
+		T=[]  
+		for i in range(m):
+			P[i] = (np.linalg.norm(E[i,:])**2)/den
+
+		a=[i for i in range(len(A))] 
+		T_index = np.random.choice(a, size = s, replace = False ,p=P )
+		T_matrix=A[T_index,:]
+		T_matrix=np.array(T_matrix)
+		S = union_a_b(S,T_matrix)
+		E=projection(A,S)
+	return S
+
+x = 0.2
+k=int(dataset.shape[0]*x)
+t=2
+e=0.2
+s = int(k/e)
 
 wt = {}
 for pt in dataset:
@@ -117,30 +176,37 @@ for pt in dataset:
 
 centers = 50
 itr=1
-Q = bisecting_k_means(dataset, centers ,itr, wt)
-mod_centers = Q.keys()
-optimal_cost,dic = kmeans_cost(mod_centers,dataset,wt)
+# Q = bisecting_k_means(dataset, centers ,itr, wt)
+# mod_centers = Q.keys()
+# optimal_cost,dic = kmeans_cost(mod_centers,dataset,wt)
 
-coreset_size = [21000, 18000, 15000, 12000, 9000, 6000, 3600]
-coreset = leverage_sampling(dataset, 25000)
-print("sampling created")
-coreset = np.array(coreset)
+optimal_cost = 1711339543822.51
+print("Optimal Cost --> ", optimal_cost)
 
-for ssize in coreset_size:
-	condensed_set = coreset[:ssize, :]
-	print(condensed_set.shape)
+from sklearn.cluster import KMeans
+sample_sizes = [35000, 30000, 25000, 20000, 15000, 10000, 6000]
+
+for ssize in sample_sizes:
+	t = 2
+	s = ssize//t
+	vol_sam = volume_samp(dataset,t,s)
+	coreset = []
+	for j in vol_sam:
+		coreset.append(list(j))
+	dsize = len(coreset)
 	avg_cost = 0
-	for itr in range(3):
-		Q = bisecting_k_means(condensed_set, centers , 1, wt)
+
+	"""CLustering on Coreset and Comparison with optimal Kmeans solution"""
+	for j in range(3):
+		Q = bisecting_k_means(coreset, centers , 1, wt)
 		mod_centers = Q.keys()
 		cost2, dic = kmeans_cost(mod_centers, dataset, wt)
 		avg_cost += cost2
+	
 	avg_cost = avg_cost/3
-
-	print("optimal cost is --> ", optimal_cost)
-	print("length of coreset --> ", ssize)
-	print("sampling cost is --> ", avg_cost)
-	reduction = ((dataset.shape[0] - ssize)/dataset.shape[0])*100
+	print("Uniform sample size --> ", dsize)
+	print("Sampling Cost --> ", avg_cost)
+	reduction = ((dataset.shape[0]-dsize)/dataset.shape[0])*100
 	error = (abs(avg_cost - optimal_cost)/optimal_cost)*100
 	print("reduction in dataset is --> ", reduction)
 	print("error in clustering cost --> ", error)

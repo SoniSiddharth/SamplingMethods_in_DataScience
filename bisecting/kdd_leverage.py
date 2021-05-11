@@ -3,10 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy.linalg as LA
 import pickle
-from sklearn.cluster import KMeans
 import math
+from sklearn.cluster import KMeans
 
-dbfile = open("../worms_reduced.pickle", "rb" )
+dbfile = open("../kdd/kdd_reduced.pickle", "rb" )
 dataset = pickle.load(dbfile)
 print(dataset.shape)
 
@@ -100,7 +100,7 @@ def leverage_sampling(data, red_size):
 	print("svd started")
 	u, s, v = np.linalg.svd(data)
 	print("svd done")
-	u = u[:, :64]
+	u = u[:, :77]
 	norms = []
 	N = data.shape[0]
 	for j in range(N):
@@ -115,12 +115,11 @@ wt = {}
 for pt in dataset:
 	wt[tuple(pt)] = 1
 
-centers = 25
+centers = 50
 itr=1
 Q = bisecting_k_means(dataset, centers ,itr, wt)
 mod_centers = Q.keys()
 optimal_cost,dic = kmeans_cost(mod_centers,dataset,wt)
-
 
 coreset_size = [21000, 18000, 15000, 12000, 9000, 6000, 3600]
 coreset = leverage_sampling(dataset, 25000)

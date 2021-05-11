@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy.linalg as LA
 
-traindata = pd.DataFrame(pd.read_csv("bio_train.dat", "\t"))
+traindata = pd.DataFrame(pd.read_csv("../kdd/bio_train.dat", "\t"))
 # traindata = traindata.sample(n=1000, replace=False)
 dataset = np.array(traindata)
 print(dataset.shape)

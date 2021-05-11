@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 """Real Dataset"""
 
-traindata = pd.DataFrame(pd.read_csv("bio_train.dat", '\t'))
+traindata = pd.DataFrame(pd.read_csv("../kdd/bio_train.dat", '\t'))
 print(traindata.shape)
 dataset = np.array(traindata)
 

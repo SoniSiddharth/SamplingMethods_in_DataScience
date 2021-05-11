@@ -16,7 +16,7 @@ import pickle
 # traindata = pd.DataFrame(pd.read_csv("worms/worms_64d.txt", " "))
 # traindata = traindata.sample(n=60000, replace=False)
 
-dbfile = open("worms_reduced.pickle", "rb" )
+dbfile = open("../worms/worms_reduced.pickle", "rb" )
 dataset = pickle.load(dbfile)
 print(dataset.shape)
 

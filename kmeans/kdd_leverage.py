@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy.linalg as LA
 import pickle
 
-dbfile = open("kdd_reduced.pickle", "rb" )
+dbfile = open("../kdd/kdd_reduced.pickle", "rb" )
 dataset = pickle.load(dbfile)
 print(dataset.shape)
 

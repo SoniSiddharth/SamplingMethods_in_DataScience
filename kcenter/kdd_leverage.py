@@ -8,12 +8,11 @@ from sklearn.decomposition import PCA
 
 """Real Dataset"""
 
-# traindata = pd.DataFrame(pd.read_csv("../bio_train.dat", '\t'))
-dbfile = open("../worms_reduced_30k.pickle", "rb" )
+dbfile = open("../kdd/kdd_reduced_40k.pickle", "rb" )
 dataset = pickle.load(dbfile)
 
-pca = PCA(n_components=5)
-dataset = pca.fit_transform(dataset)
+# pca = PCA(n_components=5)
+# dataset = pca.fit_transform(dataset)
 print(dataset.shape)
 
 def nearest(pt,Q):
@@ -35,8 +34,8 @@ def kcenter_cost(centers, data):
     dic = {}
     for c in centers:
         dic[c] = []
-    for p in dataset:
-        ctr, dp = nearest(p,Q)
+    for p in data:
+        ctr, dp = nearest(p,centers)
         dic[tuple(ctr)].append(dp)
     for j in dic:
         x = max(dic[j])
@@ -74,70 +73,47 @@ for pt in dataset:
   wt[tuple(pt)] = 1
 
 from sklearn.cluster import KMeans
-centers = 25
+centers = 50
 mod_centers = k_center(dataset, centers, wt)
 optimal_cost = kcenter_cost(mod_centers, dataset)
 print("optimal cost is --> ", optimal_cost)
 
-"""Light Weight Coresets"""
 
-def light_weight_coreset(dataset,m):
-    #calculate the mean of all data points
-    mu = [0]*(len(dataset[0]))
-    for p in dataset :
-      for k in range(len(p)):
-        mu[k] += p[k]
-    for k in range(len(p)):
-      mu[k] = mu[k]/len(dataset)
+def leverage_sampling(data, red_size):
+	print("svd started")
+	u, s, v = np.linalg.svd(data)
+	print("svd done")
+	u = u[:, :77]
+	norms = []
+	N = data.shape[0]
+	for j in range(N):
+		norms.append((tuple(data[j]), np.linalg.norm(u[j,:])**2))
+	norms_sorted = sorted(norms, key=lambda x: x[1], reverse=True)
+	reduced_set = []
+	for j in range(red_size):
+		reduced_set.append(list(norms_sorted[j][0]))
+	return reduced_set
 
-    #first term in prob distribution
-    a = 1/(2*len(dataset))
 
-    #denominator in second term of prob distribution
-    sum_dsq = 0
-    mu = np.array(mu)
-    for p in dataset :
-      p = np.array(p)
-      sum_dsq += (LA.norm(mu-p))**2
+wt = {}
+for pt in dataset:
+	wt[tuple(pt)] = 1
 
-    #assign probability to each point
-    q = {}
-    w = []
-    for p in dataset :
-      p = np.array(p)
-      dsq = (LA.norm(mu-p))**2
-      q[tuple(p)] = a + (1/2)*(dsq/sum_dsq)
-      w.append(q[tuple(p)])
-    
-
-    #sample m points from this distribution       
-    a = [i for i in range(len(dataset))]
-    sample = np.random.choice(a,size = m, replace = False ,p=w )
-
-    coreset = {}
-    for indx in sample:
-      p = dataset[indx]
-      coreset[tuple(p)] = 1/(m*q[tuple(p)]) #point and weight
-
-    return coreset
-
+# coreset_size = [35000, 30000, 25000, 20000, 15000, 10000, 6000]
 coreset_size = [14000, 12000, 10000, 8000, 6000, 4000, 2400]
 from sklearn.cluster import KMeans
 
-for ssize in coreset_size:
-  coreset = light_weight_coreset(dataset, ssize)
-  """CLustering on Coreset and Comparison with optimal Kmeans solution"""
-  data2 = []
-  coreset_wts = []
-  for p in coreset:
-    data2.append(list(p))
-    coreset_wts.append(coreset[p])
+coreset = leverage_sampling(dataset, max(coreset_size))
+coreset = np.array(coreset)
 
+for ssize in coreset_size:
+  condensed_set = coreset[:ssize, :]
+  print(condensed_set.shape)
   # running 5 times and taking average
   avg_cost = 0
   for j in range(3):
-    mod_centers = k_center(data2, centers, wt)
-    cost2 = kcenter_cost(mod_centers, dataset, wt)
+    mod_centers = k_center(condensed_set, centers, wt)
+    cost2 = kcenter_cost(mod_centers, dataset)
     avg_cost += cost2
   avg_cost = avg_cost/3
 

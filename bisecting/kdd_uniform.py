@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 
 """Real Dataset"""
 
-traindata = pd.DataFrame(pd.read_csv("../bio_train.dat", "\t"))
+traindata = pd.DataFrame(pd.read_csv("../kdd/bio_train.dat", "\t"))
 print(traindata.shape)
 # print(traindata)
 dataset = np.array(traindata)
