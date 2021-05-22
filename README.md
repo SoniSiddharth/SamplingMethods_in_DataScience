@@ -1,4 +1,4 @@
-# Sampling Methods to speed up Clustering Algorithms
+# Sampling Methods to speed up Clustering Algorithms ⭐
 
 ## K-Means Clustering
 
@@ -46,11 +46,12 @@
 ![alt text](images/kmedoids.png?raw=true)
 
 
-## Directory Structure
+## Directory Structure 📁
 
 - The directory structure is as follows -
 - There are 4 directories for each clustering algorithm
 
+```
 │   Averaged_Data_collection.xlsx
 │   README.md
 │
@@ -120,6 +121,7 @@
         worms_reduced_20k.pickle
         worms_reduced_30k.pickle
         worms_reduced_40k.pickle
+```
 
 ## Results
 
