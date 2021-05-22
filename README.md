@@ -1,6 +1,6 @@
 # Sampling Methods to speed up Clustering Algorithms ⭐
 
-## K-Means Clustering
+## K-Means Clustering 🔥
 
 - KDD Biotrain Dataset
 
@@ -12,7 +12,7 @@
 
 ![alt text](images/worms/kmeansall.png?raw=true)
 
-## Bisecting K-Means Clustering
+## Bisecting K-Means Clustering 🔥
 
 - KDD Biotrain Dataset
 
@@ -24,7 +24,7 @@
 
 ![alt text](images/worms/bisectingall.png?raw=true)
 
-## K-Center Clustering
+## K-Center Clustering 🔥
 
 - KDD Biotrain Dataset
 
@@ -34,7 +34,7 @@
 
 ![alt text](images/worms/kcenterall.png?raw=true)
 
-## K-Medoids Clustering
+## K-Medoids Clustering 🔥
 
 - K-medoids clustering is performed on artificial dataset because of its expensive runtime
 - Artificial Dataset (dataset visualization)
@@ -123,7 +123,7 @@
         worms_reduced_40k.pickle
 ```
 
-## Results
+## Results 🔥
 
 - Lightweight coresets outperform all other sampling techniques in each combination ofdatasets and clustering algorithms.
 
